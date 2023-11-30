@@ -26,6 +26,11 @@ outcome_sd <- 12
 
 cluster_sd <- find_cluster_variance(icc, outcome_sd)
 
+total_effect_ebp <- 7.5
+
+
+
+
 # HARPP values
 n_per_arm_harp <- 13
 n_clusters_harp <- 14
@@ -55,5 +60,24 @@ list(
      tar_target(p_te_harp, c(.5), iteration = "list"), 
      tar_target(coefs_harp, find_mediator_coefs(total_effect_harp, p_te_harp, baseline_risk_harp, risk_difference_harp), pattern = map(p_te_harp), iteration = "list"),
      tar_target(sim_batch, 1:n_batches), 
-     tar_target(harp_sims, simulate_clustertrials(n_sims = n_sims_batch, n_clusters_harp, n_per_arm_harp, n_clusters_tx_harp, cluster_sd_harp, mediator_function = simulate_mediator_binary, mediator_args = list(alpha_0 = coefs_harp["alpha_0"], alpha_1 = coefs_harp["alpha_1"]), link_function = simulate_normal_outcome, outcome_transformation = I, coefficient_vector = c(1, coefs_harp["tx_coef"], coefs_harp["mediation_coef"]), residual_sd = outcome_sd_harp) %>% mutate(p_te = p_te_harp, sim_batch = sim_batch), pattern = cross(coefs_harp, sim_batch))
+     tar_target(harp_sims, simulate_clustertrials(n_sims = n_sims_batch, n_clusters_harp, n_per_arm_harp, n_clusters_tx_harp, cluster_sd_harp, mediator_function = simulate_mediator_binary, mediator_args = list(alpha_0 = coefs_harp["alpha_0"], alpha_1 = coefs_harp["alpha_1"]), link_function = simulate_normal_outcome, outcome_transformation = I, coefficient_vector = c(1, coefs_harp["tx_coef"], coefs_harp["mediation_coef"]), residual_sd = outcome_sd_harp) %>% mutate(p_te = p_te_harp, sim_batch = sim_batch), pattern = cross(coefs_harp, sim_batch)), 
+     ## EBP/PTSD sims
+     tar_target(p_te_ebp, c(.5), iteration = "list"), 
+     tar_target(coefs_ebp, calculate_coefficients_linear(total_effect_ebp, p_te_ebp, 1), pattern = map(p_te_ebp), iteration = "list"), 
+     tar_target(sim_batch_ebp, 1:n_batches_ebp), 
+     tar_target(ebp_ptsd_sims, simulate_clustertrials(n_sims = n_sims_batch_ebp, 
+						      n_clusters_ebp, 
+						      n_per_arm_ebp, 
+						      n_clusters_tx_ebp, 
+						      cluster_sd_ebp, 
+						      mediator_function = simulate_mediator_normal, 
+						      mediator_args = list(coefficient_vector = coefs_ebp, mediator_sd = mediator_sd_ebp), 
+						      link_function = simulate_normal_outcome, 
+						      outcome_transformation = I, 
+						      coefficient_vector = , 
+						      residual_sd = ) %>% 
+       mutate(p_te = p_te_ebp, sim_batch = sim_batch_ebp), pattern = cross(coefs_ebp, sim_batch_ebp))
+
+
+
 )
