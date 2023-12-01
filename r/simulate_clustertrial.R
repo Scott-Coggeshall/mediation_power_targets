@@ -4,7 +4,7 @@
 
 simulate_clustertrial  <- function(n_clusters, n_per_cluster, n_clusters_tx, 
 				   random_intercept_sd, mediator_function, mediator_args,   
-				   link_function, outcome_transformation, ...){
+				   link_function,  outcome_transformation, p_missing,...){
 
 
 	# n_per_cluster can be supplied as an integer, in which case cluster sizes are all equal,
@@ -45,12 +45,14 @@ simulate_clustertrial  <- function(n_clusters, n_per_cluster, n_clusters_tx,
 	dat$n_clusters <- n_clusters
 	dat$n_per_cluster <- n_per_cluster
 	dat$n_clusters_tx  <- n_clusters_tx
+	
+	dat$missing <- as.vector(sapply(1:n_clusters, function(x) rbinom(unique(n_per_cluster), 1, p_missing)))
 
 
 	# analyze data
-	outcome_model <- lmer(outcome ~ tx + mediator + (1 | cluster_id), data = dat)
+	outcome_model <- lmer(outcome ~ tx + mediator + (1 | cluster_id), data = dat[dat$missing == 0, ])
 
-	mediator_model <- glmer(mediator ~ tx + (1 | cluster_id),  family = 'binomial', data = dat)
+	mediator_model <- glmer(mediator ~ tx + (1 | cluster_id),  family = 'binomial', data = dat[dat$missing == 0, ])
 
 	mediation_analysis <- mediate(mediator_model, outcome_model, treat = "tx", mediator = "mediator")
 
@@ -66,11 +68,11 @@ simulate_clustertrials <- function(n_sims, n_clusters, n_per_cluster, n_clusters
 				   random_intercept_sd,  
 				   mediator_function, 
 				   mediator_args,
-				   link_function, outcome_transformation, ...){
+				   link_function, outcome_transformation, p_missing, ...){
 
 
 	datasets_list <- lapply(1:n_sims, function(x){
-					simulate_clustertrial(n_clusters, n_per_cluster, n_clusters_tx, random_intercept_sd, mediator_function, mediator_args, link_function, outcome_transformation, ...) %>% mutate(sim_id = x) 
+					simulate_clustertrial(n_clusters, n_per_cluster, n_clusters_tx, random_intercept_sd, mediator_function, mediator_args, link_function, outcome_transformation, p_missing, ...) %>% mutate(sim_id = x) 
 				   })
 
 	Reduce("rbind", datasets_list)
