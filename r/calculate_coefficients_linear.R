@@ -24,8 +24,8 @@ calculate_coefficients_linear <- function(total_effect,
 
 
 
-	return(c(direct_effect, exposure_mediator_coef, 
-		 mediator_outcome_coef))
+	return(c(direct_effect = direct_effect, exposure_mediator_coef = exposure_mediator_coef, 
+		 mediator_outcome_coef = mediator_outcome_coef))
 
 
 }
